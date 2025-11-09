@@ -1,0 +1,184 @@
+package org.firstinspires.ftc.teamcode.DECODE;
+
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
+
+@Autonomous(name = "Meet1Score2")
+public class Meet1Score2 extends LinearOpMode {
+
+    // Motor declarations
+    private DcMotor frontLeft;
+    private DcMotor frontRight;
+    private DcMotor backLeft;
+    private DcMotor backRight;
+    private DcMotor bottomMotor;
+    private DcMotor topMotor;
+
+    @Override
+    public void runOpMode() {
+        // Initialize motors
+        frontLeft = hardwareMap.get(DcMotor.class, "leftFront");
+        frontRight = hardwareMap.get(DcMotor.class, "rightFront");
+        backLeft = hardwareMap.get(DcMotor.class, "leftBack");
+        backRight = hardwareMap.get(DcMotor.class, "rightBack");
+        bottomMotor = hardwareMap.get(DcMotor.class, "BottomMotor");
+        topMotor = hardwareMap.get(DcMotor.class, "TopMotor");
+
+        // Set motor directions (adjust if needed)
+        frontLeft.setDirection(DcMotor.Direction.REVERSE);
+        backLeft.setDirection(DcMotor.Direction.REVERSE);
+        frontRight.setDirection(DcMotor.Direction.REVERSE);
+        backRight.setDirection(DcMotor.Direction.FORWARD);
+
+        // Set encoder modes for bottom motor only
+        bottomMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        bottomMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        telemetry.addData("Status", "Ready to run");
+        telemetry.update();
+
+        waitForStart();
+
+        // ============================================
+        // START TOP MOTOR - RUNS CONTINUOUSLY
+        // ============================================
+        setTopMotorPower(0.85);  // Set power for TopMotor (runs until you change it or stop it)
+
+        // ============================================
+        // EDIT THESE VALUES FOR YOUR AUTONOMOUS
+        // ============================================
+
+        // Move forward
+//        drive(0.5, 0.4);  // power, time in seconds
+//        brake(0.5);       // brake time in seconds
+
+        // Turn right (positive = right, negative = left)
+//        turn(0.4, 1.7);   // power, time in seconds
+//        brake(0.5);
+
+        drive(-0.5,0.3);
+        // Move bottom motor by encoder ticks (TopMotor keeps running)
+        moveBottomMotor(-43, 0.6);  // ticks, power
+        brake(0.5);
+
+        sleep(2000);
+
+        // Change TopMotor speed if needed
+        //setTopMotorPower(0.8);  // Increase speed
+
+        // Move bottom motor again
+        moveBottomMotor(1000, 1.0);
+        //brake(0.5);
+
+        sleep(1000);
+
+        // Stop TopMotor at the end if needed
+        stopTopMotor();
+
+//        drive(0.5,0.5);
+//
+//        strafe(0.5,0.4);
+
+        turn(-0.4,0.2);
+
+        strafe(-0.5,1);
+
+        setBottomMotorPower(1);
+
+        drive(0.4,0.2);
+
+
+        // Move backward
+//        drive(-0.3, 1.0);
+//        brake(0.5);
+//
+//        // Turn left
+//        turn(-0.4, 1.5);
+//        brake(0.5);
+//
+//        // Strafe right
+//        strafe(0.5, 1.5);
+//        brake(0.5);
+
+        // ============================================
+    }
+
+    // Drive forward (positive) or backward (negative)
+    private void drive(double power, double time) {
+        frontLeft.setPower(power);
+        frontRight.setPower(power);
+        backLeft.setPower(power);
+        backRight.setPower(power);
+        sleep((long)(time * 1000));
+    }
+
+    // Turn right (positive) or left (negative)
+    private void turn(double power, double time) {
+        frontLeft.setPower(power);
+        frontRight.setPower(-power);
+        backLeft.setPower(power);
+        backRight.setPower(-power);
+        sleep((long)(time * 1000));
+    }
+
+    // Strafe right (positive) or left (negative)
+    private void strafe(double power, double time) {
+        frontLeft.setPower(power);
+        frontRight.setPower(-power);
+        backLeft.setPower(-power);
+        backRight.setPower(power);
+        sleep((long)(time * 1000));
+    }
+
+    // Brake - stops all motors
+    private void brake(double time) {
+        frontLeft.setPower(0);
+        frontRight.setPower(0);
+        backLeft.setPower(0);
+        backRight.setPower(0);
+        sleep((long)(time * 1000));
+    }
+
+    // Set TopMotor to run continuously at specified power
+    private void setTopMotorPower(double power) {
+        topMotor.setPower(power);
+    }
+
+    private void setBottomMotorPower(double power) {
+        bottomMotor.setPower(power);
+    }
+
+    // Stop TopMotor
+    private void stopTopMotor() {
+        topMotor.setPower(0);
+    }
+
+    // Move bottom motor by encoder ticks (TopMotor keeps running in background)
+    private void moveBottomMotor(int ticks, double power) {
+        // Reset encoder
+        bottomMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        // Set target position
+        bottomMotor.setTargetPosition(ticks);
+
+        // Set to RUN_TO_POSITION mode
+        bottomMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        // Set power
+        bottomMotor.setPower(Math.abs(power));
+
+        // Wait until motor reaches target
+        while (opModeIsActive() && bottomMotor.isBusy()) {
+            telemetry.addData("Bottom Position", bottomMotor.getCurrentPosition());
+            telemetry.addData("Top Motor Power", topMotor.getPower());
+            telemetry.update();
+        }
+
+        // Stop motor
+        bottomMotor.setPower(0);
+
+        // Return to RUN_USING_ENCODER mode
+        bottomMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
+}
