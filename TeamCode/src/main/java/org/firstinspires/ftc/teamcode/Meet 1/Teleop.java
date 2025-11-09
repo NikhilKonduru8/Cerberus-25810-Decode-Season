@@ -15,7 +15,10 @@ public class MainTeleOp extends LinearOpMode {
     private DcMotor BottomMotor, TopMotor;
 
     // Turn sensitivity (lower = smoother/slower turning)
-    private static final double TURN_SENSITIVITY = 0.6;
+    private static final double TURN_SENSITIVITY = 0.8;
+
+    // Strafe correction to prevent rotation during strafing
+    private static final double STRAFE_CORRECTION = 0.15;
 
     // Variables for bumper control
     private boolean leftBumperPressed = false;
@@ -51,16 +54,19 @@ public class MainTeleOp extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
-            // Driving controls
+            // ========== GAMEPAD 1: DRIVING CONTROLS ==========
             double y = -gamepad1.left_stick_y; // Forward/Back
             double x = gamepad1.left_stick_x * 1.1;  // Strafe Left/Right
             double turn = gamepad1.right_stick_x * TURN_SENSITIVITY; // Rotation with reduced sensitivity
 
-            // Mecanum formulas
-            double frontLeftPower = y + x + turn;
-            double backLeftPower = y - x + turn;
-            double frontRightPower = y - x - turn;
-            double backRightPower = y + x - turn;
+            // Apply strafe correction to counteract unwanted rotation
+            double strafeAdjustment = x * STRAFE_CORRECTION;
+
+            // Mecanum formulas with strafe correction
+            double frontLeftPower = y + x + turn - strafeAdjustment;
+            double backLeftPower = y - x + turn + strafeAdjustment;
+            double frontRightPower = y - x - turn + strafeAdjustment;
+            double backRightPower = y + x - turn - strafeAdjustment;
 
             // Set power to drive motors
             leftFront.setPower(frontLeftPower);
@@ -68,16 +74,18 @@ public class MainTeleOp extends LinearOpMode {
             rightFront.setPower(frontRightPower);
             rightBack.setPower(backRightPower);
 
-            // --- Left Bumper: Move BottomMotor back 5 ticks ---
-            if (gamepad1.left_bumper && !leftBumperPressed) {
+            // ========== GAMEPAD 2: SCORING CONTROLS ==========
+
+            // --- Left Bumper: Move BottomMotor back 50 ticks ---
+            if (gamepad2.left_bumper && !leftBumperPressed) {
                 leftBumperPressed = true;
                 int currentPos = BottomMotor.getCurrentPosition();
                 int targetPos = currentPos - 50;
                 BottomMotor.setTargetPosition(targetPos);
                 BottomMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                BottomMotor.setPower(0.8);
+                BottomMotor.setPower(1);
                 bottomMotorMoving = true;
-            } else if (!gamepad1.left_bumper) {
+            } else if (!gamepad2.left_bumper) {
                 leftBumperPressed = false;
             }
 
@@ -87,16 +95,16 @@ public class MainTeleOp extends LinearOpMode {
                 bottomMotorMoving = false;
             }
 
-            // --- Right Bumper: Move TopMotor (outtake) back 15 ticks ---
-            if (gamepad1.right_bumper && !rightBumperPressed) {
+            // --- Right Bumper: Move TopMotor (outtake) back 100 ticks ---
+            if (gamepad2.right_bumper && !rightBumperPressed) {
                 rightBumperPressed = true;
                 int currentPos = TopMotor.getCurrentPosition();
                 int targetPos = currentPos - 100;
                 TopMotor.setTargetPosition(targetPos);
                 TopMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                TopMotor.setPower(0.8);
+                TopMotor.setPower(1);
                 topMotorMoving = true;
-            } else if (!gamepad1.right_bumper) {
+            } else if (!gamepad2.right_bumper) {
                 rightBumperPressed = false;
             }
 
@@ -106,28 +114,28 @@ public class MainTeleOp extends LinearOpMode {
                 topMotorMoving = false;
             }
 
-            // --- Scoring Motor Controls (Triggers instead of buttons) ---
+            // --- Scoring Motor Controls (Triggers) ---
             // Only control motors manually if they're not moving to position
             if (!bottomMotorMoving) {
-                // Left trigger controls BottomMotor (was 'a' button)
-                if (gamepad1.left_trigger > 0.1) {
+                // Left trigger controls BottomMotor
+                if (gamepad2.left_trigger > 0.1) {
                     BottomMotor.setPower(1);
-                } else if (!gamepad1.b) {
+                } else if (!gamepad2.b) {
                     BottomMotor.setPower(0);
                 }
             }
 
             if (!topMotorMoving) {
-                // Right trigger controls TopMotor (was 'y' button)
-                if (gamepad1.right_trigger > 0.1) {
+                // Right trigger controls TopMotor
+                if (gamepad2.right_trigger > 0.1) {
                     TopMotor.setPower(1);
-                } else if (!gamepad1.b) {
+                } else if (!gamepad2.b) {
                     TopMotor.setPower(0);
                 }
             }
 
             // B button runs both motors forward
-            if (gamepad1.b) {
+            if (gamepad2.b) {
                 if (!bottomMotorMoving) {
                     BottomMotor.setPower(1);
                 }
@@ -142,6 +150,7 @@ public class MainTeleOp extends LinearOpMode {
             telemetry.addData("Bottom Moving", bottomMotorMoving);
             telemetry.addData("Top Moving", topMotorMoving);
             telemetry.addData("Turn Sensitivity", TURN_SENSITIVITY);
+            telemetry.addData("Strafe Correction", STRAFE_CORRECTION);
             telemetry.update();
         }
     }
