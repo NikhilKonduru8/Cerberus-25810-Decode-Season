@@ -1,0 +1,99 @@
+package org.firstinspires.ftc.teamcode.DECODE;
+
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
+
+@Autonomous(name = "Meet1Simple")
+public class Meet1Simple extends LinearOpMode {
+
+    // Motor declarations
+    private DcMotor frontLeft;
+    private DcMotor frontRight;
+    private DcMotor backLeft;
+    private DcMotor backRight;
+
+    @Override
+    public void runOpMode() {
+        // Initialize motors
+        frontLeft = hardwareMap.get(DcMotor.class, "leftFront");
+        frontRight = hardwareMap.get(DcMotor.class, "rightFront");
+        backLeft = hardwareMap.get(DcMotor.class, "leftBack");
+        backRight = hardwareMap.get(DcMotor.class, "rightBack");
+
+        // Set motor directions (adjust if needed)
+        frontLeft.setDirection(DcMotor.Direction.REVERSE);
+        backLeft.setDirection(DcMotor.Direction.REVERSE);
+        frontRight.setDirection(DcMotor.Direction.FORWARD);
+        backRight.setDirection(DcMotor.Direction.FORWARD);
+
+        telemetry.addData("Status", "Ready to run");
+        telemetry.update();
+
+        waitForStart();
+
+        // ============================================
+        // EDIT THESE VALUES FOR YOUR AUTONOMOUSibb
+        // ============================================
+
+        // Move forward
+        drive(0.5, 0.4);  // power, time in seconds
+        brake(0.5);       // brake time in seconds
+
+        // Turn right (positive = right, negative = left)
+        turn(0.4, 1.7);   // power, time in seconds
+        brake(0.5);
+
+
+
+        // Move backward
+//        drive(-0.3, 1.0);
+//        brake(0.5);
+//
+//        // Turn left
+//        turn(-0.4, 1.5);
+//        brake(0.5);
+//
+//        // Strafe right
+//        strafe(0.5, 1.5);
+//        brake(0.5);
+//
+//        // ============================================
+    }
+
+    // Drive forward (positive) or backward (negative)
+    private void drive(double power, double time) {
+        frontLeft.setPower(power);
+        frontRight.setPower(power);
+        backLeft.setPower(power);
+        backRight.setPower(power);
+        sleep((long)(time * 1000));
+    }
+
+    // Turn right (positive) or left (negative)
+    private void turn(double power, double time) {
+        frontLeft.setPower(power);
+        frontRight.setPower(-power);
+        backLeft.setPower(power);
+        backRight.setPower(-power);
+        sleep((long)(time * 1000));
+    }
+
+    // Strafe right (positive) or left (negative)
+    private void strafe(double power, double time) {
+        frontLeft.setPower(power);
+        frontRight.setPower(-power);
+        backLeft.setPower(-power);
+        backRight.setPower(power);
+        sleep((long)(time * 1000));
+    }
+
+    // Brake - stops all motors
+    private void brake(double time) {
+        frontLeft.setPower(0);
+        frontRight.setPower(0);
+        backLeft.setPower(0);
+        backRight.setPower(0);
+        sleep((long)(time * 1000));
+    }
+}
